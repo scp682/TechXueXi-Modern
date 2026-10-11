@@ -1,0 +1,6 @@
+-r requirements.txt
+# Compatible transitive dependencies for this legacy Flask/Selenium project.
+Werkzeug==2.1.2
+SQLAlchemy==1.4.54
+pyparsing==2.4.7
+setuptools<81

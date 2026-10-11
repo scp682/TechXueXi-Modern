@@ -1,0 +1,37 @@
+name: 兼容问题反馈
+description: 反馈 TechXueXi-Modern 的登录、内容、积分或启动问题
+title: "[问题] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        这是 TechXueXi-Modern 的非官方兼容版反馈入口，不是上游项目。
+        不要提交 Cookie、二维码、账号资料、密钥、完整请求头或原始日志。
+  - type: checkboxes
+    id: privacy
+    attributes:
+      label: 提交前检查
+      options:
+        - label: 已阅读本仓库 README 和 SECURITY.md，并去除敏感信息。
+          required: true
+        - label: 已确认 Chrome 与 ChromeDriver 主版本一致。
+          required: true
+  - type: input
+    id: environment
+    attributes:
+      label: 环境
+      placeholder: Windows / Python / Chrome / ChromeDriver 版本
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: 复现步骤与实际结果
+      description: 说明操作步骤、预期结果及实际结果；不附账号资料。
+    validations:
+      required: true
+  - type: textarea
+    id: error
+    attributes:
+      label: 脱敏错误描述
+      description: 仅粘贴必要错误信息；不要上传完整日志、请求头或二维码。

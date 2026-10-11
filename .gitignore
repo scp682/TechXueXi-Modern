@@ -1,0 +1,41 @@
+.vscode
+SourcePackages/XuexiStart.sh
+pandaico.ico
+contributors.psd
+.idea
+SourcePackages/chrome
+SourcePackages/pdlearn/__pycache__
+SourcePackages/user
+SourcePackages/__pycache__
+startTech.bat
+
+# Private user state, authentication, local browsers and installation caches.
+/SourcePackages/user/
+/SourcePackages/chrome/
+/.runtime/
+/.venv/
+/.playwright-cli/
+/output/
+__pycache__/
+*.py[cod]
+*.log
+*.db
+*.sqlite
+*.sqlite3
+*.db-journal
+*.db-wal
+*.db-shm
+.env
+.env.*
+*.pem
+*.key
+qrcode.png
+cookies.json
+
+# Upstream release jobs publish to upstream registries or require its secrets.
+# Keep the local originals, but never publish/enable them in the new repository.
+/.github/workflows/release.yml
+/.github/workflows/docker-publish.yml
+/.github/workflows/clear-action.yml
+# Legacy updater changes origin to upstream; use the documented safe update flow.
+/windows系统git_pull_一键更新.bat
