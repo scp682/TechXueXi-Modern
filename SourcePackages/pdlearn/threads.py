@@ -35,7 +35,7 @@ class MyThread(Thread):
         self.lock = lock
 
     def run(self):
-        print("开启： " + self.name)
+        print(f"[任务] 开始运行：{self.name}")
         if self.lock:
             with threadLock:
                 self.func(*self.args)

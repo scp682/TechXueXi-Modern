@@ -1,7 +1,7 @@
 @echo off
 setlocal EnableExtensions
 chcp 65001 >nul
-title TechXueXi Launcher
+title TechXueXi-Modern
 set "PYTHONUTF8=1"
 set "PYTHONIOENCODING=utf-8"
 
@@ -14,9 +14,7 @@ set "VENV_DIR=%ROOT_DIR%.venv"
 set "VENV_PY=%VENV_DIR%\Scripts\python.exe"
 set "PYTHON_EXE="
 
-echo ============================================================
-echo TechXueXi one-click launcher
-echo ============================================================
+echo [启动检查]
 
 if not exist "%APP_SCRIPT%" goto missing_project
 if not exist "%REQ_FILE%" goto missing_project
@@ -42,16 +40,16 @@ if not defined PYTHON_EXE (
 
 if not defined PYTHON_EXE goto missing_python
 
-echo [1/3] Creating the Python 3.8 virtual environment...
+echo   正在创建 Python 3.8 虚拟环境……
 "%PYTHON_EXE%" -m venv "%VENV_DIR%"
 if errorlevel 1 goto venv_failed
 
 :check_dependencies
-echo [2/3] Checking Python dependencies...
+echo   正在检查 Python 依赖……
 "%VENV_PY%" -c "import requests,lxml,colorama,bs4,selenium,pyhocon,PIL,telebot,socks,flask,flask_sqlalchemy,flask_cors,qrcode; from pyzbar import pyzbar" >nul 2>&1
 if not errorlevel 1 goto check_browser
 
-echo Installing dependencies. This is only needed on the first run...
+echo   正在安装缺少的依赖……
 if exist "%ROOT_DIR%.runtime\wheels\pip-25.0.1-py3-none-any.whl" (
     "%VENV_PY%" -m pip install --no-index --find-links "%ROOT_DIR%.runtime\wheels" pip
     if errorlevel 1 goto dependency_failed
@@ -65,73 +63,69 @@ if errorlevel 1 goto dependency_failed
 if errorlevel 1 goto dependency_failed
 
 :check_browser
-echo [3/3] Checking ChromeDriver...
+echo   正在检查 ChromeDriver……
 if exist "%APP_DIR%\chrome\chromedriver.exe" goto run_app
 where chromedriver.exe >nul 2>&1
 if errorlevel 1 goto missing_driver
 
 :run_app
 if /i "%~1"=="--check" (
-    echo Startup checks passed. Login was not started.
+    echo   自检通过。此次仅检查启动环境。
     exit /b 0
 )
+echo   检查通过。关闭窗口可停止程序。
 echo.
-echo Starting TechXueXi...
-echo Close this window to stop the program.
-echo ============================================================
 pushd "%APP_DIR%"
 "%VENV_PY%" "%APP_SCRIPT%"
 set "APP_EXIT=%ERRORLEVEL%"
 popd
 
 echo.
-if not "%APP_EXIT%"=="0" echo TechXueXi exited with code %APP_EXIT%.
-echo Press any key to close this window.
+if not "%APP_EXIT%"=="0" echo [错误] 程序退出，退出码 %APP_EXIT%。
+echo 按任意键关闭窗口。
 pause >nul
 exit /b %APP_EXIT%
 
 :missing_python
 echo.
-echo ERROR: Python 3.8 was not found.
-echo Install Python 3.8 x64 and enable "Add Python to PATH", then run this file again.
-echo Download: https://www.python.org/downloads/release/python-3810/
+echo [错误] 未找到 Python 3.8。
+echo 安装 Python 3.8 x64 时勾选 "Add Python to PATH"，然后重新运行。
+echo 下载地址：https://www.python.org/downloads/release/python-3810/
 goto stop_with_error
 
 :wrong_venv
 echo.
-echo ERROR: The existing .venv was not created with Python 3.8.
-echo Rename or remove this folder, then run the launcher again:
+echo [错误] 现有虚拟环境的 Python 版本不是 3.8。
+echo 请重命名以下目录后重新运行：
 echo %VENV_DIR%
 goto stop_with_error
 
 :missing_driver
 echo.
-echo ERROR: ChromeDriver was not found.
-echo Put a matching Chrome and ChromeDriver pair in:
+echo [错误] 未找到 ChromeDriver。
+echo 请在下列位置放置对应的 Chrome 和 ChromeDriver：
 echo %APP_DIR%\chrome\chrome.exe
 echo %APP_DIR%\chrome\chromedriver.exe
-echo The Chrome and ChromeDriver major versions must match.
+echo 两者的主版本号需一致。
 goto stop_with_error
 
 :missing_project
 echo.
-echo ERROR: Required project files are missing.
-echo Keep this BAT file in the TechXueXi-developing folder.
+echo [错误] 缺少项目文件。请在完整解压的项目目录中运行本文件。
 goto stop_with_error
 
 :venv_failed
 echo.
-echo ERROR: Failed to create the virtual environment.
+echo [错误] 创建虚拟环境失败。
 goto stop_with_error
 
 :dependency_failed
 echo.
-echo ERROR: Failed to install Python dependencies.
-echo Check the network connection and the error messages above.
+echo [错误] 安装 Python 依赖失败。请检查网络连接及上方的错误信息。
 goto stop_with_error
 
 :stop_with_error
 echo.
-echo Press any key to close this window.
+echo 按任意键关闭窗口。
 pause >nul
 exit /b 1

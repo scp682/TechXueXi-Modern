@@ -233,18 +233,17 @@ def refresh_all_cookies(live_time=8.0, display_score=False):  # cookie有效时�
         for d in cookie_list:  # 检查是否过期
             if 'name' in d and 'value' in d and 'expiry' in d and d["name"] == "token":
                 remain_time = (int(d['expiry']) - (int)(time.time())) / 3600
-                msg = get_nickname(uid) + " 登录剩余有效时间：" + \
-                    str(int(remain_time * 10) / 10) + " 小时."
-                print(color.green(msg), end="")
-                msgInfo[uid] = msg
+                nickname = get_nickname(uid)
+                remaining_hours = int(remain_time * 10) / 10
+                msgInfo[uid] = f"{nickname} 登录剩余有效时间：{remaining_hours} 小时."
+                status = f"[登录] {nickname}"
                 if remain_time < 0:
-                    print(color.red(" 已过期 需要重新登陆，将自动移除此cookie."))
+                    print(color.red(f"{status}：已过期"))
                     remove_cookie(uid)
                 else:
-                    # print(color.blue(" 有效"), end="")
                     valid_cookies.append(cookie_list)
                     if remain_time <= live_time:  # 全新cookies的有效时间是12h
-                        print(color.red(" 需要刷新"))
+                        print(color.yellow(f"{status}：剩余 {remaining_hours} 小时，正在刷新"))
                         need_check = True
                         # 暂没有证据表明可以用requests来请求，requests请求的响应不带cookies，不确定会不会更新cookies时间
                         # （但是万一服务端自动更新了cookie，可以试试12h之后再访问呢？则剩余时间直接设为12即可。有空的伙计可以做个实验）
@@ -271,9 +270,9 @@ def refresh_all_cookies(live_time=8.0, display_score=False):  # cookie有效时�
                         else:
                             save_cookies(new_cookies)
                     else:
-                        print(color.green(" 无需刷新"))
+                        print(color.green(f"{status}：有效，剩余 {remaining_hours} 小时"))
     if need_check:  # 再执行一遍来检查有效情况
-        print("再次检查cookies有效时间...")
+        print("[登录] 正在确认刷新结果……")
         return refresh_all_cookies(live_time, display_score)
     elif display_score:
         for cookie in valid_cookies:

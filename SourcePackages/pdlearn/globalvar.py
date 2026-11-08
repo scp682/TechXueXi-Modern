@@ -97,7 +97,6 @@ def pushprint(text, chat_id=None):
         if push_msg:
             text = push_msg+"\n"+text
             push_msg = ''
-        print(accesstoken, secret)
         if pushmode == "1":
             push = DingDingHandler(accesstoken, secret)
             push.ddtextsend(text)

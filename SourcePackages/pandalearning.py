@@ -1,6 +1,4 @@
 import math
-import os
-import sys
 import time
 from sys import argv
 
@@ -10,7 +8,7 @@ boot.check_environment()
 try:
     # 在此处导入所有 pdlearn 内的模块
     from pdlearn import globalvar as gl
-    from pdlearn import color, score, threads, user, version
+    from pdlearn import color, score, threads, user
     from pdlearn.answer_question import daily, weekly, zhuanxiang
     from pdlearn.article_video import article, video
     from pdlearn.config import cfg_get
@@ -39,49 +37,44 @@ def get_argv():
     return gl.nohead, gl.lock, gl.stime, gl.single
 
 
-def start_learn(uid, name):
-    #  0 读取版本信息
-    start_time = time.time()
-    nohead, lock, stime, Single = get_argv()
-    print("是否无头模式：{0} {1}".format(nohead, os.getenv('Nohead')))
-    cookies = user.get_cookie(uid)
+def get_run_mode(nohead):
     if nohead == True:
-        TechXueXi_mode = "3"
-    else:
-        TechXueXi_mode = str(cfg_get("base.ModeType", 3))
-        print("当前选择模式：" + TechXueXi_mode + "\n" + "=" * 60)
+        return "3"
+    return str(cfg_get("base.ModeType", 3))
+
+
+def start_learn(uid, name):
+    start_time = time.time()
+    nohead, _, stime, _ = get_argv()
+    TechXueXi_mode = get_run_mode(nohead)
+    cookies = user.get_cookie(uid)
 
     if not name:
         user_fullname = user.get_fullname(uid)
         name = user_fullname.split('_', 1)[1]
-    else:
-        user_fullname = uid+"_"+name
 
     if not cookies or TechXueXi_mode == "0":
-        msg = ""
         if name == "新用户":
-            msg = "需要增加新用户，请扫码登录，否则请无视"
+            msg = "[登录] 请使用学习强国 App 扫码添加账号。"
         else:
-            msg = name+" 登录信息失效，请重新扫码"
-        # print(msg)
+            msg = f"[登录] {name}：请扫码登录。"
         gl.pushprint(msg, chat_id=uid)
         if gl.pushmode == "6":
-            gl.pushprint("web模式跳过自动获取二维码,请手动点击添加按钮", chat_id=uid)
-            print(color.red("【#️⃣】 若直接退出请运行：webserverListener.py"))
+            gl.pushprint("[登录] 网页控制台模式，请在控制台点击添加账号。", chat_id=uid)
+            print(color.yellow("如需启动网页控制台，请运行 webserverListener.py。"))
             return
         driver_login = Mydriver()
         cookies = driver_login.login()
         driver_login.quit()
-        # cookies = login()
         if not cookies:
-            print("登录超时")
+            print(color.red("[登录] 扫码超时。"))
             return
         user.save_cookies(cookies)
         uid = user.get_userId(cookies)
         user_fullname = user.get_fullname(uid)
         name = user_fullname.split('_', 1)[1]
         user.update_last_user(uid)
-    output = name + " 登录正常，开始学习...\n"
+    output = f"[运行] {name}：已登录，开始执行模式 {TechXueXi_mode}。"
 
     article_index = user.get_article_index(uid)
     video_index = user.get_video_index(uid)
@@ -124,10 +117,9 @@ def start_learn(uid, name):
 
 
 def start(nick_name=None):
-    print('本地适配版：2026-10-11（当前内容源 / Chrome 登录 / 动态积分 / 每日练习）')
-    nohead, lock, stime, Single = get_argv()
-    info_shread = threads.MyThread("获取更新信息...", version.up_info)
-    info_shread.start()
+    nohead, _, _, single = get_argv()
+    browser_mode = "无头" if nohead == True else "有窗口"
+    print(f"[运行] 当前模式 {get_run_mode(nohead)}  |  浏览器：{browser_mode}")
     user_list = user.list_user(printing=False)
     user.refresh_all_cookies()
     if len(user_list) == 0:
@@ -136,7 +128,7 @@ def start(nick_name=None):
         try:
             if nick_name is None or nick_name == user_list[i][1] or nick_name == user_list[i][0]:
                 _learn = threads.MyThread(
-                    user_list[i][0]+"开始学xi", start_learn, user_list[i][0], user_list[i][1], lock=Single)
+                    user_list[i][1], start_learn, user_list[i][0], user_list[i][1], lock=single)
                 _learn.start()
         except:
             gl.pushprint("学习页面崩溃，学习终止")
@@ -174,7 +166,7 @@ def get_all_user_name():
 
 def add_user(chat_id=None):
     get_argv()
-    gl.pushprint("请登录（登录方式请仔细阅读文档，如果觉得这是让你下载，就是你没仔细读文档）：", chat_id=chat_id)
+    gl.pushprint("[登录] 请使用学习强国 App 扫码添加账号。", chat_id=chat_id)
     driver_login = Mydriver()
     cookies = driver_login.login(chat_id)
     driver_login.quit()
@@ -189,19 +181,17 @@ def add_user(chat_id=None):
     gl.pushprint(user_fullname+"登录成功", chat_id=chat_id)
 
 
-if __name__ == '__main__':
-    if(cfg_get('display.banner') != False):  # banner文本直接硬编码，不要放在conf中
-        print("=" * 60 +
-              '\n    我们的网站，GitHub 等页面已经被中国大陆的浏览器加入黑名单，请用谷歌浏览器 chrome 打开我们的站点。' +
-              '\n    科技强 guo 官方网站：https://techxuexi.js.org' +
-              '\n    Github地址：https://github.com/TechXueXi' +
-              '\n使用本项目，必须接受以下内容，否则请立即退出：' +
-              '\n    - TechXueXi 仅额外提供给“爱党爱 guo ”且“工作学业繁重”的人' +
-              '\n    - 项目开源协议 LGPL-3.0' +
-              '\n    - 不得利用本项目盈利' +
-              '\n另外，我们建议你参与一个维护劳动法的项目：' +
-              '\nhttps://996.icu/ 或 https://github.com/996icu/996.ICU/blob/master/README_CN.md')
-    print("=" * 60, '''\nTechXueXi 现支持以下模式（答题时请值守电脑旁处理少部分不正常的题目）：''')
-    print(cfg_get('base.ModeText', "") + '\n' + "=" * 60)
-    # 模式提示文字请在 ./config/default_template.conf 处修改。
+def main():
+    print("TechXueXi-Modern")
+    print("-" * 46)
+    print("可用模式")
+    mode_text = cfg_get('base.ModeText', "")
+    print(mode_text.strip("\r\n").replace("\r\n", "\n"))
+    print("  在 user/settings.conf 中设置 base.ModeType。")
+    print("  答题时请留意浏览器。")
+    print("\n运行状态")
     start()
+
+
+if __name__ == '__main__':
+    main()
